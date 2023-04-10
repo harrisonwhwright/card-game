@@ -1,39 +1,59 @@
-# THINGS I NEED TO ADD:
-# DATABASE TO HOLD USERNAME AND PASSWORD RATHER THAN STORING IT IN THE DATABSE !!
-# CHECK IN register() TO SEE IF A USERNAME IS ALREADY TAKEN
-# insert password into AUTH database
-
 import random
 import csv
-import hashlib
 import creds # imports the hidden key to encrypt
 
 def print_border():
     print("+=--- --+-- ---=+")
 
+def check_username_exists(username):
+    with open("authentication database.csv", "r") as csvfile:
+        reader = csv.reader(csvfile, delimiter="|")
+        for row in reader:
+            if (row[0]).lower() == username.lower():
+                return True
+    return False
+
 def login():
     username = ""
     password = ""
-    while username == "":
-        username = input("What is your username ? ")
-    while password == "":
-        password = input("What is your password ? ")
+    while True:
+        username = input("What is your username? ")
+
+        password = input("What is your password? ")
         password = encrypt_decrypt(password).encode().hex()
-    print("\n")
-    return username
+
+        with open("authentication database.csv", newline="") as csvfile:
+            reader = csv.reader(csvfile, delimiter="|")
+            next(reader) # skip the first row
+            for row in reader:
+                if (row[0] == username) and (row[1] == password):
+                    print("found")
+                    return username
+                else:
+                    print("error, try again\n")
 
 def register():
     username = ""
     password = ""
-    while username == "":
-        username = input("What is your username ? ")
+
+    while True:
+        print("\nWhat is your username?\nPlease use a-z and 0-9. It is not case-sensitive.")
+        username = input().lower()
+
+        if not username.isalnum():
+            print("\nUsername can only contain alphanumeric characters.")
+        elif check_username_exists(username):
+            print("\nUsername already exists.")
+        else:
+            print("\nUsername is available.")
+            break
+
     while password == "":
         password = input("What is your password ? ")
         password = encrypt_decrypt(password).encode().hex()
     print("\n")
     
     data = [username,password]
-    print(data)
     with open("authentication database.csv", "a", newline="") as csvfile:
         writer = csv.writer(csvfile, delimiter="|")
         writer.writerow(data)
@@ -53,8 +73,11 @@ def insert_into_database(data):
     sorted_contents = ['|'.join(row) + '\n' for row in sorted_lines]
     with open("user profile database.csv", 'w') as f:
         f.writelines(sorted_contents)
+    
+    database_sort()
 
 def display_leaderboard():
+    print()
     print_border()
     print("LEADERBOARD:")
     with open("user profile database.csv", newline="") as csvfile:
@@ -64,9 +87,24 @@ def display_leaderboard():
         for row in reader:
             lines.append(row)
         for i in range (0,5):
-            print(str(lines[i][0])+":",lines[i][2])
+            print(str(lines[i][0])+":",lines[i][1])
     print_border()
     print()
+
+def get_second_column(row):
+    return row[1]   
+
+def database_sort():
+    # read the csv file into a list of rows
+    with open("user profile database.csv", "r") as csvfile:
+        rows = list(csv.reader(csvfile, delimiter="|"))
+    
+    # sorts the rows based on the second column
+    sorted_rows = sorted(rows[1:], key=get_second_column, reverse=True)
+ 
+    with open("user profile database.csv", "w", newline="") as csvfile:
+        writer = csv.writer(csvfile, delimiter="|")
+        writer.writerows([rows[0]] + sorted_rows)
 
 def encrypt_decrypt(password):
     password = password.rstrip('\n')
@@ -75,11 +113,11 @@ def encrypt_decrypt(password):
         result += chr(ord(password[i]) ^ ord(creds.key[i]))
     return result
 
-#to decrypt the password
-#password = bytes.fromhex(password)
-#password = password.decode()
-#encrypt_decrypt(password)
-#print(password)
+    #to decrypt the password
+    #password = bytes.fromhex(password)
+    #password = password.decode()
+    #encrypt_decrypt(password)
+    #print(password)
 
 def initialise_deck():
     
@@ -214,12 +252,15 @@ while (num_players < 1) or (num_players > 2):
 
 print("login or register?")
 answer = input()
+
 if answer.lower() == "login":
     player_1_name= login()
 elif answer.lower() == "register":
     player_1_name = register()
 player_2_name = "Computer"
+
 if num_players == 2:
     print("PLAYER 2 please login")
     player_2_name = login()
+
 start_game()
