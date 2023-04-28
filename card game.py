@@ -1,21 +1,27 @@
 import random
 import csv
 import creds # imports the hidden key to encrypt
+import tkinter as tk
 
 def print_border():
+    # prints a decorative top and bottom
     print("+=--- --+-- ---=+")
 
 def check_username_exists(username):
+    # takes the username and if the username is found within the database then returns true, otherwise returns false
     with open("authentication database.csv", "r") as csvfile:
         reader = csv.reader(csvfile, delimiter="|")
         for row in reader:
             if (row[0]).lower() == username.lower():
+            # if the lowercase of the first value of the table (name) is the same as the lowercase input
                 return True
     return False
 
 def login():
     username = ""
     password = ""
+    # initialise username and password to be empty
+    
     while True:
         username = input("What is your username? ")
 
@@ -25,12 +31,15 @@ def login():
         with open("authentication database.csv", newline="") as csvfile:
             reader = csv.reader(csvfile, delimiter="|")
             next(reader) # skip the first row
+            username_found = False
             for row in reader:
                 if (row[0] == username) and (row[1] == password):
                     print("found")
+                    username_found = True
                     return username
-                else:
-                    print("error, try again\n")
+
+        if username_found == False:
+            print("error, try again\n")
 
 def register():
     username = ""
@@ -92,6 +101,7 @@ def display_leaderboard():
     print()
 
 def get_second_column(row):
+    # returns the second item in the row
     return row[1]   
 
 def database_sort():
@@ -101,7 +111,8 @@ def database_sort():
     
     # sorts the rows based on the second column
     sorted_rows = sorted(rows[1:], key=get_second_column, reverse=True)
- 
+    # possible alternate solution:
+    # sorted_rows = sorted(rows[1:], key=lambda x: x[1], reverse=True)
     with open("user profile database.csv", "w", newline="") as csvfile:
         writer = csv.writer(csvfile, delimiter="|")
         writer.writerows([rows[0]] + sorted_rows)
@@ -128,11 +139,15 @@ def initialise_deck():
     player_2 = []
 
     # initialise the deck of cards
-    cards = [
-    ["Red",1],["Red",2],["Red",3],["Red",4],["Red",5],["Red",6],["Red",7],["Red",8],["Red",9],["Red",10],
-    ["Black",1],["Black",2],["Black",3],["Black",4],["Black",5],["Black",6],["Black",7],["Black",8],["Black",9],["Black",10],
-    ["Yellow",1],["Yellow",2],["Yellow",3],["Yellow",4],["Yellow",5],["Yellow",6],["Yellow",7],["Yellow",8],["Yellow",9],["Yellow",10]
-    ]
+    #cards = [
+    #["Red",1],["Red",2],["Red",3],["Red",4],["Red",5],["Red",6],["Red",7],["Red",8],["Red",9],["Red",10],
+    #["Black",1],["Black",2],["Black",3],["Black",4],["Black",5],["Black",6],["Black",7],["Black",8],["Black",9],["Black",10],
+    #["Yellow",1],["Yellow",2],["Yellow",3],["Yellow",4],["Yellow",5],["Yellow",6],["Yellow",7],["Yellow",8],["Yellow",9],["Yellow",10]
+    #]
+    cards = []
+    for colour in ["Red", "Black", "Yellow"]:
+        for value in range(1, 11):
+            cards.append([colour, value])
 
     # shuffle the deck of cards to be in a random order
     return random.sample(cards,30)
@@ -245,6 +260,8 @@ def start_game():
 
 
 # THIS IS THE START OF THE PROGRAM !!!
+
+print(dir())
 
 num_players = 0
 while (num_players < 1) or (num_players > 2):
